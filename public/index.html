@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f5f6f8">
+    <meta name="description" content="Panel de gestión de inventario y compras para una constructora.">
+    <title>ObraControl · Inventario</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" id="sidebar">
+        <a class="brand" href="#" data-page="dashboard" aria-label="ObraControl, inicio">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 32 32" fill="none"><path d="M5 25V11.5L16 5l11 6.5V25H5Z" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M11 25v-8h10v8M10 12h.01M16 12h.01M22 12h.01" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+          </span>
+          <span><strong>obra<span>control</span></strong><small>GESTIÓN DE OBRA</small></span>
+        </a>
+        <div class="side-label">MENÚ PRINCIPAL</div>
+        <nav class="navigation" aria-label="Navegación principal">
+          <button class="nav-link active" type="button" data-page="dashboard"><span class="nav-icon" data-icon="grid"></span> Resumen</button>
+          <button class="nav-link" type="button" data-page="inventory"><span class="nav-icon" data-icon="boxes"></span> Inventario <span class="nav-count" id="nav-alert-count">0</span></button>
+          <button class="nav-link" type="button" data-page="movements"><span class="nav-icon" data-icon="arrows"></span> Movimientos</button>
+          <button class="nav-link" type="button" data-page="orders"><span class="nav-icon" data-icon="clipboard"></span> Órdenes de compra</button>
+          <button class="nav-link" type="button" data-page="suppliers"><span class="nav-icon" data-icon="truck"></span> Proveedores</button>
+        </nav>
+        <div class="side-label side-label-lower">SISTEMA</div>
+        <nav class="navigation">
+          <button class="nav-link" type="button" data-page="activity"><span class="nav-icon" data-icon="activity"></span> Registro de actividad</button>
+        </nav>
+        <div class="sidebar-bottom">
+          <div class="help-card">
+            <span class="help-icon" data-icon="help"></span>
+            <strong>¿Necesitas ayuda?</strong>
+            <p>Consulta la guía para conocer las funciones del sistema.</p>
+            <a href="/guia" target="_blank" rel="noreferrer">Ver guía <span aria-hidden="true">→</span></a>
+          </div>
+          <div class="profile">
+            <div class="avatar">MJ</div>
+            <div class="profile-copy"><strong>Mario Jiménez</strong><span>Operador de bodega</span></div>
+            <span class="profile-more" aria-hidden="true">···</span>
+          </div>
+        </div>
+      </aside>
+
+      <main class="main-area">
+        <header class="topbar">
+          <button class="icon-button mobile-menu" id="menu-toggle" aria-label="Abrir menú"><span data-icon="menu"></span></button>
+          <div class="breadcrumb"><span>Constructora</span><span class="crumb-divider">/</span><strong id="breadcrumb-current">Resumen</strong></div>
+          <div class="topbar-actions">
+            <div class="connection-state"><span class="connection-dot"></span><span id="connection-label">Conectando</span></div>
+            <button class="icon-button notification-button" type="button" data-page="inventory" aria-label="Ver alertas">
+              <span data-icon="bell"></span><i class="notification-dot" id="notification-dot"></i>
+            </button>
+            <div class="top-avatar">MJ</div>
+          </div>
+        </header>
+
+        <section class="page-content">
+          <div class="page-heading">
+            <div>
+              <div class="eyebrow"><span class="eyebrow-line"></span> CONTROL DE OPERACIONES</div>
+              <h1 id="page-title">Resumen general</h1>
+              <p class="page-subtitle" id="page-subtitle">Monitorea el estado de tus materiales y operaciones.</p>
+            </div>
+            <div class="heading-actions">
+              <span class="date-chip"><span data-icon="calendar"></span><span id="today-label"></span></span>
+              <button class="button button-primary" type="button" id="primary-action"><span data-icon="plus"></span><span>Registrar movimiento</span></button>
+            </div>
+          </div>
+
+          <div class="error-banner hidden" id="global-error" role="alert"></div>
+          <div class="toast-region" id="toast-region" aria-live="polite"></div>
+
+          <section class="page-panel active" id="page-dashboard" data-panel="dashboard">
+            <div class="metrics-grid">
+              <article class="metric-card">
+                <div class="metric-top"><span class="metric-label">Materiales registrados</span><span class="metric-icon blue" data-icon="boxes"></span></div>
+                <div class="metric-value" id="metric-materials">—</div>
+                <div class="metric-foot"><span class="metric-foot-muted">En el catálogo de inventario</span></div>
+              </article>
+              <article class="metric-card">
+                <div class="metric-top"><span class="metric-label">Unidades en stock</span><span class="metric-icon green" data-icon="layers"></span></div>
+                <div class="metric-value" id="metric-units">—</div>
+                <div class="metric-foot"><span class="metric-foot-muted">En todas las bodegas</span></div>
+              </article>
+              <article class="metric-card">
+                <div class="metric-top"><span class="metric-label">Por reabastecer</span><span class="metric-icon amber" data-icon="alert"></span></div>
+                <div class="metric-value" id="metric-reorder">—</div>
+                <div class="metric-foot"><span class="metric-foot-alert" id="metric-reorder-note">Materiales bajo el punto de reorden</span></div>
+              </article>
+              <article class="metric-card">
+                <div class="metric-top"><span class="metric-label">Órdenes pendientes</span><span class="metric-icon violet" data-icon="clipboard"></span></div>
+                <div class="metric-value" id="metric-orders">—</div>
+                <div class="metric-foot"><span class="metric-foot-muted">Requieren aprobación</span></div>
+              </article>
+            </div>
+
+            <div class="dashboard-grid">
+              <article class="surface inventory-overview">
+                <div class="surface-heading">
+                  <div><h2>Estado del inventario</h2><p>Existencias y niveles de reorden por material</p></div>
+                  <button class="text-button" type="button" data-page="inventory">Ver inventario <span aria-hidden="true">→</span></button>
+                </div>
+                <div class="inventory-chart" id="inventory-chart"><div class="loading-state">Cargando niveles de inventario…</div></div>
+                <div class="chart-legend"><span><i class="legend-dot legend-stock"></i> Stock actual</span><span><i class="legend-dot legend-min"></i> Punto de reorden</span></div>
+              </article>
+              <article class="surface alerts-overview">
+                <div class="surface-heading">
+                  <div><h2>Alertas de reposición</h2><p>Materiales que necesitan atención</p></div>
+                  <span class="small-counter" id="alert-count">0</span>
+                </div>
+                <div class="alert-list" id="dashboard-alerts"><div class="loading-state">Revisando alertas…</div></div>
+                <button class="button button-light button-full" type="button" data-page="inventory">Ver todas las alertas <span aria-hidden="true">→</span></button>
+              </article>
+            </div>
+
+            <article class="surface recent-surface">
+              <div class="surface-heading">
+                <div><h2>Actividad reciente</h2><p>Últimos movimientos registrados en bodega</p></div>
+                <button class="text-button" type="button" data-page="movements">Ver movimientos <span aria-hidden="true">→</span></button>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead><tr><th>MATERIAL</th><th>TIPO</th><th>UBICACIÓN</th><th>DOCUMENTO</th><th>FECHA</th><th>CANTIDAD</th></tr></thead>
+                  <tbody id="recent-movements"><tr><td colspan="6" class="loading-state">Cargando movimientos…</td></tr></tbody>
+                </table>
+              </div>
+            </article>
+          </section>
+
+          <section class="page-panel" id="page-inventory" data-panel="inventory">
+            <div class="surface filters-surface">
+              <div class="search-field"><span data-icon="search"></span><input id="inventory-search" type="search" placeholder="Buscar por nombre o código..." aria-label="Buscar materiales"></div>
+              <label class="select-filter"><span>Bodega</span><select id="warehouse-filter"><option value="">Todas las bodegas</option></select></label>
+              <label class="select-filter"><span>Estado</span><select id="stock-filter"><option value="">Todos los estados</option><option value="REORDER">Por reabastecer</option><option value="OK">Stock suficiente</option></select></label>
+              <button class="button button-light" type="button" id="inventory-refresh"><span data-icon="refresh"></span> Actualizar</button>
+            </div>
+            <article class="surface table-surface">
+              <div class="surface-heading table-heading">
+                <div><h2>Catálogo de materiales</h2><p id="inventory-caption">Existencias calculadas a partir de los movimientos.</p></div>
+                <span class="results-count" id="inventory-count">0 materiales</span>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead><tr><th>MATERIAL</th><th>CATEGORÍA</th><th>BODEGA</th><th>STOCK ACTUAL</th><th>PUNTO DE REORDEN</th><th>ESTADO</th><th></th></tr></thead>
+                  <tbody id="inventory-rows"><tr><td colspan="7" class="loading-state">Cargando materiales…</td></tr></tbody>
+                </table>
+              </div>
+            </article>
+          </section>
+
+          <section class="page-panel" id="page-movements" data-panel="movements">
+            <article class="surface filters-surface">
+              <div class="search-field"><span data-icon="search"></span><input id="movement-search" type="search" placeholder="Buscar material o documento..." aria-label="Buscar movimientos"></div>
+              <button class="button button-light" id="movement-refresh" type="button"><span data-icon="refresh"></span> Actualizar</button>
+              <button class="button button-primary" type="button" data-action="movement"><span data-icon="plus"></span> Nuevo movimiento</button>
+            </article>
+            <article class="surface table-surface">
+              <div class="surface-heading table-heading"><div><h2>Historial de movimientos</h2><p>Registro trazable de entradas, salidas, traslados y ajustes.</p></div></div>
+              <div class="table-wrap"><table>
+                <thead><tr><th>FECHA</th><th>MATERIAL</th><th>MOVIMIENTO</th><th>UBICACIÓN</th><th>DOCUMENTO DE ORIGEN</th><th>USUARIO</th><th>CANTIDAD</th></tr></thead>
+                <tbody id="movement-rows"><tr><td colspan="7" class="loading-state">Cargando movimientos…</td></tr></tbody>
+              </table></div>
+            </article>
+          </section>
+
+          <section class="page-panel" id="page-orders" data-panel="orders">
+            <div class="order-summary" id="duplicate-banner"></div>
+            <article class="surface filters-surface">
+              <div class="search-field"><span data-icon="search"></span><input id="order-search" type="search" placeholder="Buscar número o proveedor..." aria-label="Buscar órdenes"></div>
+              <button class="button button-light" id="orders-refresh" type="button"><span data-icon="refresh"></span> Actualizar</button>
+              <button class="button button-primary" type="button" data-action="order"><span data-icon="plus"></span> Crear orden</button>
+            </article>
+            <article class="surface table-surface">
+              <div class="surface-heading table-heading"><div><h2>Órdenes de compra</h2><p>Seguimiento de compras, contratos y aprobaciones.</p></div></div>
+              <div class="table-wrap"><table>
+                <thead><tr><th>ORDEN</th><th>PROVEEDOR</th><th>OBRA</th><th>FECHA</th><th>MONTO</th><th>ESTADO</th><th>APROBACIÓN</th><th></th></tr></thead>
+                <tbody id="order-rows"><tr><td colspan="8" class="loading-state">Cargando órdenes…</td></tr></tbody>
+              </table></div>
+            </article>
+          </section>
+
+          <section class="page-panel" id="page-suppliers" data-panel="suppliers">
+            <article class="surface table-surface">
+              <div class="surface-heading table-heading"><div><h2>Directorio de proveedores</h2><p>Proveedores vinculados al catálogo de materiales.</p></div></div>
+              <div class="supplier-grid" id="supplier-grid"><div class="loading-state">Cargando proveedores…</div></div>
+            </article>
+          </section>
+
+          <section class="page-panel" id="page-activity" data-panel="activity">
+            <article class="surface table-surface">
+              <div class="surface-heading table-heading"><div><h2>Registro de actividad</h2><p>Bitácora de cambios y operaciones del sistema.</p></div><button class="button button-light" id="activity-refresh" type="button"><span data-icon="refresh"></span> Actualizar</button></div>
+              <div class="table-wrap"><table>
+                <thead><tr><th>FECHA</th><th>ACCIÓN</th><th>ENTIDAD</th><th>IDENTIFICADOR</th><th>DETALLE</th></tr></thead>
+                <tbody id="activity-rows"><tr><td colspan="5" class="loading-state">Cargando actividad…</td></tr></tbody>
+              </table></div>
+            </article>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <div class="modal-backdrop hidden" id="modal-backdrop">
+      <section class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="modal-heading"><div><span class="modal-kicker" id="modal-kicker">INVENTARIO</span><h2 id="modal-title">Nuevo movimiento</h2></div><button class="icon-button modal-close" type="button" aria-label="Cerrar">×</button></div>
+        <form id="movement-form" class="form-content hidden">
+          <div class="form-grid">
+            <label class="form-field form-full"><span>Material <b>*</b></span><select name="materialId" id="movement-material" required></select></label>
+            <label class="form-field"><span>Tipo de movimiento <b>*</b></span><select name="movementType" id="movement-type" required><option value="ENTRY">Entrada</option><option value="EXIT">Salida</option><option value="TRANSFER">Traslado entre bodegas</option><option value="ADJUSTMENT">Ajuste de inventario</option></select></label>
+            <label class="form-field"><span>Cantidad <b>*</b></span><input name="quantity" type="number" step="0.001" min="0.001" placeholder="0.000" required></label>
+            <label class="form-field warehouse-field" id="source-field"><span>Bodega de origen <b>*</b></span><select name="sourceWarehouseId" id="movement-source"></select></label>
+            <label class="form-field warehouse-field hidden" id="destination-field"><span>Bodega destino <b>*</b></span><select name="destinationWarehouseId" id="movement-destination"></select></label>
+            <label class="form-field hidden" id="adjustment-field"><span>Dirección del ajuste <b>*</b></span><select name="adjustmentDirection" id="adjustment-direction"><option value="IN">Aumentar existencia</option><option value="OUT">Disminuir existencia</option></select></label>
+            <label class="form-field"><span>Documento de origen <b>*</b></span><input name="originDocument" maxlength="80" placeholder="Ej. OC-2026-001" required></label>
+            <label class="form-field"><span>Tipo de documento <b>*</b></span><select name="originType" id="movement-origin" required><option value="PURCHASE_ORDER">Orden de compra</option><option value="GOODS_RECEIPT">Recepción de materiales</option><option value="ISSUE_VOUCHER">Vale de salida</option><option value="TRANSFER">Traslado</option><option value="ADJUSTMENT">Ajuste</option><option value="OPENING_BALANCE">Saldo inicial</option></select></label>
+            <label class="form-field"><span>Registrado por <b>*</b></span><select name="performedByUserId" id="movement-user" required></select></label>
+            <label class="form-field form-full"><span>Notas</span><textarea name="notes" rows="2" maxlength="500" placeholder="Información adicional (opcional)"></textarea></label>
+          </div>
+          <div class="form-error hidden" id="movement-error" role="alert"></div>
+          <div class="modal-actions"><button class="button button-light modal-close" type="button">Cancelar</button><button class="button button-primary" type="submit"><span data-icon="check"></span> Guardar movimiento</button></div>
+        </form>
+
+        <form id="order-form" class="form-content hidden">
+          <div class="form-grid">
+            <label class="form-field"><span>Proveedor <b>*</b></span><select name="supplierId" id="order-supplier" required></select></label>
+            <label class="form-field"><span>Obra <b>*</b></span><select name="projectId" id="order-project" required></select></label>
+            <label class="form-field"><span>Solicitado por <b>*</b></span><select name="requestedByUserId" id="order-requester" required></select></label>
+            <label class="form-field"><span>Categoría <b>*</b></span><select name="categoryId" id="order-category" required></select></label>
+            <label class="form-field"><span>Cotizaciones disponibles <b>*</b></span><input name="quoteCount" type="number" min="0" step="1" value="2" required></label>
+            <label class="form-field"><span>Moneda</span><select name="currency"><option value="CRC">CRC · Colón costarricense</option></select></label>
+          </div>
+          <div class="line-items-heading"><div><strong>Materiales solicitados</strong><span>Agrega los productos de la orden.</span></div><button class="button button-light button-small" type="button" id="add-order-line"><span data-icon="plus"></span> Agregar línea</button></div>
+          <div class="line-items" id="order-lines"></div>
+          <div class="order-total"><span>Total estimado</span><strong id="order-total">₡0</strong></div>
+          <div class="form-error hidden" id="order-error" role="alert"></div>
+          <div class="modal-actions"><button class="button button-light modal-close" type="button">Cancelar</button><button class="button button-primary" type="submit"><span data-icon="check"></span> Crear orden pendiente</button></div>
+        </form>
+
+        <form id="approval-form" class="form-content hidden">
+          <div class="approval-summary" id="approval-summary"></div>
+          <div class="form-grid">
+            <label class="form-field form-full"><span>Aprobado por <b>*</b></span><select name="approverUserId" id="approval-user" required></select><small class="field-help" id="approval-role-help"></small></label>
+            <label class="form-field form-full"><span>Decisión <b>*</b></span><select name="decision" required><option value="APPROVED">Aprobar orden</option><option value="REJECTED">Rechazar orden</option></select></label>
+            <label class="form-field form-full"><span>Comentario</span><textarea name="comments" rows="2" maxlength="500" placeholder="Motivo o comentario (opcional)"></textarea></label>
+          </div>
+          <div class="form-error hidden" id="approval-error" role="alert"></div>
+          <div class="modal-actions"><button class="button button-light modal-close" type="button">Cancelar</button><button class="button button-primary" type="submit"><span data-icon="check"></span> Registrar decisión</button></div>
+        </form>
+
+        <div id="traceability-content" class="traceability-content hidden"></div>
+      </section>
+    </div>
+    <script src="/app.js" defer></script>
+  </body>
+</html>
